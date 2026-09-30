@@ -1,0 +1,1037 @@
+<title>Radio Atlas</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{
+  --bg:#0e1014; --bg2:#15181f; --bg3:#1d2129; --line:#282d38;
+  --fg:#e8eaf0; --fg2:#9aa3b4; --fg3:#6b7486;
+  --accent:#5eead4; --accent2:#2dd4bf; --accent-ink:#06211d;
+  --gold:#fbbf24; --bad:#f87171;
+  --row:72px; --radius:10px;
+  --shadow:0 8px 28px rgba(0,0,0,.45);
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#f6f7f9; --bg2:#ffffff; --bg3:#eef0f4; --line:#dfe3ea;
+    --fg:#161a21; --fg2:#5a6373; --fg3:#8b94a5;
+    --accent:#0d9488; --accent2:#0f766e; --accent-ink:#ffffff;
+    --gold:#d97706; --bad:#dc2626;
+    --shadow:0 8px 28px rgba(16,24,40,.12);
+  }
+}
+:root[data-theme="light"]{
+  --bg:#f6f7f9; --bg2:#ffffff; --bg3:#eef0f4; --line:#dfe3ea;
+  --fg:#161a21; --fg2:#5a6373; --fg3:#8b94a5;
+  --accent:#0d9488; --accent2:#0f766e; --accent-ink:#ffffff;
+  --gold:#d97706; --bad:#dc2626;
+  --shadow:0 8px 28px rgba(16,24,40,.12);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; background:var(--bg); color:var(--fg);
+  font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased; overflow:hidden;
+}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0;padding:0}
+svg{display:block}
+.ico{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.9;
+  stroke-linecap:round;stroke-linejoin:round}
+.ico.fill{fill:currentColor;stroke:none}
+
+/* ---------- shell ---------- */
+#app{display:flex;flex-direction:column;height:100%}
+header{
+  flex:0 0 auto;display:flex;align-items:center;gap:12px;
+  padding:10px 16px;border-bottom:1px solid var(--line);
+  background:var(--bg2);
+}
+.brand{display:flex;align-items:center;gap:9px;flex:0 0 auto}
+.brand .dot{
+  width:26px;height:26px;border-radius:50%;flex:0 0 auto;
+  background:radial-gradient(circle at 34% 30%,var(--accent),var(--accent2) 60%,transparent 61%),
+             conic-gradient(from 0deg,var(--accent2),transparent 55%);
+  box-shadow:0 0 0 1px var(--line) inset;
+}
+.brand b{font-size:15px;letter-spacing:-.2px;white-space:nowrap}
+.brand span{color:var(--fg3);font-size:11.5px;white-space:nowrap}
+.search{position:relative;flex:1 1 auto;min-width:0;max-width:560px}
+.search .ico{position:absolute;left:11px;top:50%;transform:translateY(-50%);
+  color:var(--fg3);pointer-events:none}
+#q{
+  width:100%;padding:9px 34px 9px 36px;border-radius:999px;
+  background:var(--bg3);border:1px solid transparent;outline:none;
+}
+#q:focus{border-color:var(--accent);background:var(--bg)}
+#qclear{position:absolute;right:6px;top:50%;transform:translateY(-50%);
+  color:var(--fg3);padding:5px;border-radius:50%}
+#qclear:hover{color:var(--fg);background:var(--bg2)}
+.hbtns{display:flex;gap:7px;flex:0 0 auto}
+.btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:8px 12px;border-radius:999px;background:var(--bg3);
+  border:1px solid var(--line);white-space:nowrap;font-size:13px;
+}
+.btn:hover{border-color:var(--fg3)}
+.btn.on{background:var(--accent);color:var(--accent-ink);border-color:transparent;font-weight:600}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent;font-weight:600}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn .lbl{display:inline}
+.btn.icononly{padding:8px}
+
+/* ---------- body ---------- */
+main{flex:1 1 auto;display:flex;min-height:0}
+aside{
+  flex:0 0 232px;border-right:1px solid var(--line);background:var(--bg2);
+  overflow-y:auto;padding:14px;
+}
+.fg{margin-bottom:18px}
+.fg h4{
+  margin:0 0 8px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--fg3);font-weight:600;display:flex;justify-content:space-between;align-items:center
+}
+.fg h4 button{font-size:10.5px;letter-spacing:0;text-transform:none;color:var(--accent)}
+select,.tin{
+  width:100%;padding:7px 9px;border-radius:8px;background:var(--bg3);
+  border:1px solid var(--line);outline:none
+}
+select:focus,.tin:focus{border-color:var(--accent)}
+.chips{display:flex;flex-wrap:wrap;gap:5px;max-height:216px;overflow-y:auto;
+  padding:1px;margin-top:7px}
+.chip{
+  padding:4px 9px;border-radius:999px;background:var(--bg3);border:1px solid var(--line);
+  font-size:12px;color:var(--fg2);
+}
+.chip:hover{color:var(--fg)}
+.chip.on{background:var(--accent);color:var(--accent-ink);border-color:transparent;font-weight:600}
+.chip i{font-style:normal;opacity:.55;font-size:10.5px;margin-left:3px}
+.chip.on i{opacity:.75}
+.sw{display:flex;align-items:center;gap:8px;padding:5px 0;color:var(--fg2);cursor:pointer;font-size:12.5px}
+.sw input{accent-color:var(--accent);width:15px;height:15px;margin:0}
+.sw:hover{color:var(--fg)}
+
+.list-wrap{flex:1 1 auto;display:flex;flex-direction:column;min-width:0;min-height:0}
+.bar{
+  flex:0 0 auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:8px 14px;border-bottom:1px solid var(--line);color:var(--fg2);font-size:12.5px;
+}
+.bar .count b{color:var(--fg);font-variant-numeric:tabular-nums}
+.bar .spacer{flex:1 1 auto}
+.bar select{width:auto;padding:5px 8px;font-size:12.5px}
+.pills{display:flex;gap:6px;flex-wrap:wrap}
+.pill{
+  display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:999px;
+  background:var(--bg3);border:1px solid var(--line);font-size:11.5px
+}
+.pill button{color:var(--fg3);display:flex}
+.pill button:hover{color:var(--bad)}
+#mfilt{display:none}
+
+#scroll{flex:1 1 auto;overflow-y:auto;position:relative;overscroll-behavior:contain}
+#sizer{position:relative;width:100%}
+#rows{position:absolute;top:0;left:0;right:0}
+.row{
+  height:var(--row);display:flex;align-items:center;gap:11px;padding:0 14px;
+  border-bottom:1px solid var(--line);cursor:pointer;
+}
+.row:hover{background:var(--bg2)}
+.row.playing{background:var(--bg3)}
+@supports (background:color-mix(in srgb,red,blue)){
+  .row.playing{background:color-mix(in srgb,var(--accent) 13%,transparent)}
+}
+.row.dead{opacity:.45}
+.tile{
+  width:42px;height:42px;flex:0 0 auto;border-radius:9px;display:grid;place-items:center;
+  font-weight:700;font-size:15px;color:#fff;letter-spacing:-.5px;
+  text-shadow:0 1px 2px rgba(0,0,0,.35);user-select:none;position:relative;overflow:hidden
+}
+.tile.spin::after{
+  content:"";position:absolute;inset:0;border-radius:inherit;
+  background:conic-gradient(from 0turn,transparent 0 60%,rgba(255,255,255,.9));
+  -webkit-mask:radial-gradient(circle,transparent 62%,#000 63%);
+          mask:radial-gradient(circle,transparent 62%,#000 63%);
+  animation:sp .9s linear infinite
+}
+@keyframes sp{to{transform:rotate(1turn)}}
+.meta{flex:1 1 auto;min-width:0}
+.nm{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sub{
+  color:var(--fg2);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  margin-top:1px
+}
+.sub .sep{opacity:.4;margin:0 5px}
+.sub em{font-style:normal;color:var(--fg3)}
+.tags{color:var(--accent2)}
+:root:not([data-theme="light"]) .tags{color:var(--accent)}
+.right{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.br{
+  font-size:11px;color:var(--fg3);font-variant-numeric:tabular-nums;
+  background:var(--bg3);border-radius:5px;padding:2px 6px;white-space:nowrap
+}
+.star{padding:7px;border-radius:50%;color:var(--fg3);display:flex}
+.star:hover{color:var(--gold);background:var(--bg3)}
+.star.on{color:var(--gold)}
+.empty{padding:56px 24px;text-align:center;color:var(--fg2)}
+.empty b{display:block;color:var(--fg);font-size:16px;margin-bottom:6px}
+.empty button{color:var(--accent);text-decoration:underline;margin-top:12px}
+
+/* ---------- player ---------- */
+footer{
+  flex:0 0 auto;border-top:1px solid var(--line);background:var(--bg2);
+  padding:9px 14px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow)
+}
+footer.idle{color:var(--fg3)}
+.pinfo{display:flex;align-items:center;gap:11px;flex:1 1 auto;min-width:0}
+.pbtn{
+  width:42px;height:42px;flex:0 0 auto;border-radius:50%;display:grid;place-items:center;
+  background:var(--accent);color:var(--accent-ink)
+}
+.pbtn:disabled{background:var(--bg3);color:var(--fg3);cursor:default}
+.pbtn .ico{width:20px;height:20px}
+.st{font-size:11.5px;color:var(--fg2);display:flex;align-items:center;gap:6px;margin-top:1px}
+.st.err{color:var(--bad)}
+.live{width:6px;height:6px;border-radius:50%;background:var(--accent);flex:0 0 auto}
+.live.on{animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.25}}
+.vol{display:flex;align-items:center;gap:7px;flex:0 0 auto;color:var(--fg2)}
+.vol input{width:88px;accent-color:var(--accent)}
+footer a.hp{color:var(--fg3);display:flex;padding:7px;border-radius:50%}
+footer a.hp:hover{color:var(--accent);background:var(--bg3)}
+
+/* ---------- toast ---------- */
+#toast{
+  position:fixed;left:50%;bottom:86px;transform:translate(-50%,14px);
+  background:var(--bg3);border:1px solid var(--line);box-shadow:var(--shadow);
+  padding:10px 14px;border-radius:10px;max-width:calc(100vw - 32px);
+  display:flex;align-items:center;gap:12px;opacity:0;pointer-events:none;
+  transition:opacity .18s,transform .18s;z-index:50;font-size:13px
+}
+#toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+#toast button{color:var(--accent);font-weight:600;white-space:nowrap}
+
+/* ---------- boot ---------- */
+#boot{position:fixed;inset:0;display:grid;place-items:center;background:var(--bg);z-index:99;color:var(--fg2)}
+
+/* ---------- mobile ---------- */
+@media (max-width:860px){
+  .brand span{display:none}
+  .btn .lbl{display:none}
+  .btn{padding:8px}
+  aside{
+    position:fixed;inset:48px 0 auto 0;max-height:calc(100% - 48px);z-index:30;
+    flex-basis:auto;border-right:0;border-bottom:1px solid var(--line);
+    box-shadow:var(--shadow);display:none
+  }
+  aside.open{display:block}
+  #mfilt{display:inline-flex}
+  .vol{display:none}
+  header{padding:8px 12px;gap:8px}
+  .row{padding:0 12px;gap:10px}
+}
+@media (max-width:420px){
+  .brand b{display:none}
+  .br{display:none}
+}
+</style>
+
+<div id="boot">Loading stations...</div>
+
+<div id="app" hidden>
+  <header>
+    <div class="brand">
+      <div class="dot"></div>
+      <div>
+        <b>Radio Atlas</b><br>
+        <span id="total"></span>
+      </div>
+    </div>
+
+    <div class="search">
+      <svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+      <input id="q" type="search" placeholder="Search 44,000 stations, countries, genres..."
+             autocomplete="off" spellcheck="false">
+      <button id="qclear" title="Clear" hidden>
+        <svg class="ico" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+
+    <div class="hbtns">
+      <button class="btn icononly" id="mfilt" title="Filters">
+        <svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+      </button>
+      <button class="btn primary" id="rand" title="Play a random station (R)">
+        <svg class="ico" viewBox="0 0 24 24"><path d="M16 4h4v4M20 4l-6 6M4 4l16 16M4 20l5-5"/></svg>
+        <span class="lbl">Random</span>
+      </button>
+      <button class="btn" id="favview" title="Show favorites (V)">
+        <svg class="ico" viewBox="0 0 24 24"><path d="M12 4l2.5 5.2 5.5.8-4 3.9 1 5.6-5-2.7-5 2.7 1-5.6-4-3.9 5.5-.8z"/></svg>
+        <span class="lbl">Favorites</span><span id="favn"></span>
+      </button>
+      <button class="btn icononly" id="theme" title="Toggle theme">
+        <svg class="ico" viewBox="0 0 24 24"><path d="M21 13a8.1 8.1 0 01-10-10 8 8 0 1010 10z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <aside id="side">
+      <div class="fg">
+        <h4>Country</h4>
+        <select id="fcountry"></select>
+      </div>
+      <div class="fg">
+        <h4>Language</h4>
+        <select id="flang"></select>
+      </div>
+      <div class="fg">
+        <h4>Genre <button id="gclear" hidden>clear</button></h4>
+        <input class="tin" id="tagq" placeholder="Filter genres..." autocomplete="off">
+        <div class="chips" id="tags"></div>
+      </div>
+      <div class="fg">
+        <h4>Quality</h4>
+        <select id="fbr">
+          <option value="0">Any bitrate</option>
+          <option value="64">64 kbps and up</option>
+          <option value="128">128 kbps and up</option>
+          <option value="192">192 kbps and up</option>
+          <option value="320">320 kbps and up</option>
+        </select>
+        <label class="sw" style="margin-top:8px">
+          <input type="checkbox" id="fhttps"> Secure (HTTPS) streams only
+        </label>
+        <label class="sw">
+          <input type="checkbox" id="fdead" checked> Hide streams that failed here
+        </label>
+      </div>
+      <div class="fg">
+        <h4>Favorites</h4>
+        <button class="btn" id="exp" style="width:100%;justify-content:center;margin-bottom:6px">
+          <span class="lbl" style="display:inline">Export favorites</span>
+        </button>
+        <button class="btn" id="imp" style="width:100%;justify-content:center">
+          <span class="lbl" style="display:inline">Import favorites</span>
+        </button>
+        <input type="file" id="impf" accept=".json,application/json" hidden>
+      </div>
+      <div class="fg" style="color:var(--fg3);font-size:11.5px;line-height:1.55">
+        <b style="color:var(--fg2);display:block;margin-bottom:4px">Shortcuts</b>
+        / search &nbsp;&middot;&nbsp; Space play/pause<br>
+        R random &nbsp;&middot;&nbsp; F favorite &nbsp;&middot;&nbsp; V favorites view
+      </div>
+    </aside>
+
+    <div class="list-wrap">
+      <div class="bar">
+        <span class="count"><b id="n">0</b> <span id="nlbl">stations</span></span>
+        <div class="pills" id="pills"></div>
+        <span class="spacer"></span>
+        <select id="sort">
+          <option value="pop">Most played</option>
+          <option value="votes">Most voted</option>
+          <option value="name">Name A&ndash;Z</option>
+          <option value="br">Highest bitrate</option>
+        </select>
+      </div>
+      <div id="scroll"><div id="sizer"><div id="rows"></div></div></div>
+    </div>
+  </main>
+
+  <footer class="idle" id="player">
+    <button class="pbtn" id="pp" disabled title="Play/pause (Space)">
+      <svg class="ico fill" viewBox="0 0 24 24" id="ppi"><path d="M8 5l12 7-12 7z"/></svg>
+    </button>
+    <div class="pinfo">
+      <div class="tile" id="ptile" style="background:var(--bg3)">
+        <svg class="ico" viewBox="0 0 24 24" style="color:var(--fg3)">
+          <path d="M4 10h16v9H4zM4 10l14-5"/><circle cx="8.5" cy="14.5" r="2.2"/><path d="M15 13h3M15 16h3"/>
+        </svg>
+      </div>
+      <div class="meta">
+        <div class="nm" id="pnm">Nothing playing</div>
+        <div class="st" id="pst">Pick a station, or hit Random</div>
+      </div>
+    </div>
+    <div class="right">
+      <button class="star" id="pfav" title="Favorite (F)" hidden>
+        <svg class="ico" viewBox="0 0 24 24"><path d="M12 4l2.5 5.2 5.5.8-4 3.9 1 5.6-5-2.7-5 2.7 1-5.6-4-3.9 5.5-.8z"/></svg>
+      </button>
+      <a class="hp" id="php" target="_blank" rel="noopener noreferrer" title="Station website" hidden>
+        <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c2.5 2.5 2.5 12.5 0 16M12 4c-2.5 2.5-2.5 12.5 0 16"/></svg>
+      </a>
+      <div class="vol">
+        <button id="mute" title="Mute">
+          <svg class="ico" viewBox="0 0 24 24" id="mutei"><path d="M4 9h3l4-4v14l-4-4H4zM16 9.5a4 4 0 010 5M18.5 7a7 7 0 010 10"/></svg>
+        </button>
+        <input type="range" id="vol" min="0" max="1" step="0.01" value="0.85" title="Volume">
+      </div>
+    </div>
+  </footer>
+</div>
+
+<div id="toast"><span id="tmsg"></span><button id="tact" hidden></button></div>
+
+<script id="D" type="application/json">/*__DATA__*/</script>
+<script>
+"use strict";
+(function () {
+
+/* ============ data ============ */
+var D = JSON.parse(document.getElementById("D").textContent);
+var ST = D.stations;                 // [name,url,sch,home,hsch,ci,si,langs[],tags[],codec,br,votes,clicks,hls]
+var N = 0, N_URL = 1, N_SCH = 2, N_HOME = 3, N_HSCH = 4, N_CI = 5, N_SI = 6,
+    N_LANG = 7, N_TAG = 8, N_CODEC = 9, N_BR = 10, N_VOTE = 11, N_CLICK = 12, N_HLS = 13;
+
+var COUNTRY = [], CC = [];
+D.countries.forEach(function (s) { var p = s.split("\t"); COUNTRY.push(p[0]); CC.push(p[1] || ""); });
+
+function url(i) { return (ST[i][N_SCH] ? "https://" : "http://") + ST[i][N_URL]; }
+function home(i) { var h = ST[i][N_HOME]; return h ? (ST[i][N_HSCH] ? "https://" : "http://") + h : ""; }
+function country(i) { var c = ST[i][N_CI]; return c < 0 ? "" : COUNTRY[c]; }
+function cc(i) { var c = ST[i][N_CI]; return c < 0 ? "" : CC[c]; }
+function state(i) { var s = ST[i][N_SI]; return s < 0 ? "" : D.states[s]; }
+function codec(i) { var c = ST[i][N_CODEC]; return c < 0 ? "" : D.codecs[c]; }
+function tagnames(i) { return ST[i][N_TAG].map(function (t) { return D.tags[t]; }); }
+function langnames(i) { return ST[i][N_LANG].map(function (t) { return D.langs[t]; }); }
+
+/* stable identity for favorites, survives dataset rebuilds */
+function key(i) { return ST[i][N_URL]; }
+var byKey = Object.create(null);
+for (var i = 0; i < ST.length; i++) byKey[ST[i][N_URL]] = i;
+
+/* flag from ISO country code */
+function flag(code) {
+  if (!code || code.length !== 2 || !/^[A-Z]{2}$/.test(code)) return "";
+  return String.fromCodePoint(0x1f1e6 + code.charCodeAt(0) - 65,
+                              0x1f1e6 + code.charCodeAt(1) - 65);
+}
+
+/* ============ storage ============ */
+var LS = {
+  get: function (k, d) {
+    try { var v = localStorage.getItem("radio." + k); return v == null ? d : JSON.parse(v); }
+    catch (e) { return d; }
+  },
+  set: function (k, v) {
+    try { localStorage.setItem("radio." + k, JSON.stringify(v)); } catch (e) {}
+  }
+};
+
+var favs = LS.get("favs", []);
+if (!Array.isArray(favs)) favs = [];
+var favSet = Object.create(null);
+favs.forEach(function (k) { favSet[k] = 1; });
+
+var dead = Object.create(null);
+(LS.get("dead", []) || []).forEach(function (k) { dead[k] = 1; });
+
+var theme = LS.get("theme", null);
+if (theme) document.documentElement.setAttribute("data-theme", theme);
+
+/* ============ search haystack (built lazily) ============ */
+var HAY = null;
+function buildHay() {
+  if (HAY) return;
+  HAY = new Array(ST.length);
+  for (var i = 0; i < ST.length; i++) {
+    var s = ST[i], p = s[N].toLowerCase();
+    if (s[N_CI] >= 0) p += " " + COUNTRY[s[N_CI]].toLowerCase() + " " + CC[s[N_CI]].toLowerCase();
+    if (s[N_SI] >= 0) p += " " + D.states[s[N_SI]].toLowerCase();
+    for (var j = 0; j < s[N_TAG].length; j++) p += " " + D.tags[s[N_TAG][j]];
+    for (var k2 = 0; k2 < s[N_LANG].length; k2++) p += " " + D.langs[s[N_LANG][k2]];
+    HAY[i] = p;
+  }
+}
+
+/* ============ state ============ */
+var UI = {
+  q: "", country: "", lang: "", tags: [], minbr: 0,
+  httpsOnly: false, hideDead: true, sort: "pop", favOnly: false
+};
+var filtered = [];
+var current = -1;            // index of station loaded in the player
+var ROW_H = 72;
+
+/* ============ element refs ============ */
+function $(id) { return document.getElementById(id); }
+var elScroll = $("scroll"), elSizer = $("sizer"), elRows = $("rows");
+
+/* ============ facet lists ============ */
+var tagCount = new Int32Array(D.tags.length);
+var langCount = new Int32Array(D.langs.length);
+var countryCount = new Int32Array(D.countries.length);
+for (var i2 = 0; i2 < ST.length; i2++) {
+  var s2 = ST[i2];
+  if (s2[N_CI] >= 0) countryCount[s2[N_CI]]++;
+  for (var a = 0; a < s2[N_TAG].length; a++) tagCount[s2[N_TAG][a]]++;
+  for (var b = 0; b < s2[N_LANG].length; b++) langCount[s2[N_LANG][b]]++;
+}
+
+function fillSelect(sel, items, counts, label, min) {
+  var order = [];
+  for (var i = 0; i < items.length; i++) if (counts[i] >= (min || 1)) order.push(i);
+  order.sort(function (x, y) { return items[x].localeCompare(items[y]); });
+  var h = '<option value="">' + label + "</option>";
+  for (var j = 0; j < order.length; j++) {
+    var i3 = order[j];
+    h += '<option value="' + i3 + '">' + esc(items[i3]) + " (" + counts[i3] + ")</option>";
+  }
+  sel.innerHTML = h;
+  return order;
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"]/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+  });
+}
+
+/* country select: show flag + name */
+(function () {
+  var order = [];
+  for (var i = 0; i < D.countries.length; i++) if (countryCount[i]) order.push(i);
+  order.sort(function (x, y) { return COUNTRY[x].localeCompare(COUNTRY[y]); });
+  var h = '<option value="">All countries</option>';
+  for (var j = 0; j < order.length; j++) {
+    var i4 = order[j], f = flag(CC[i4]);
+    h += '<option value="' + i4 + '">' + (f ? f + "  " : "") + esc(COUNTRY[i4]) +
+         " (" + countryCount[i4] + ")</option>";
+  }
+  $("fcountry").innerHTML = h;
+})();
+fillSelect($("flang"), D.langs, langCount, "All languages", 3);
+
+/* genre chips, most common first */
+var tagOrder = [];
+for (var i5 = 0; i5 < D.tags.length; i5++) if (tagCount[i5] >= 12) tagOrder.push(i5);
+tagOrder.sort(function (x, y) { return tagCount[y] - tagCount[x]; });
+
+function renderTags() {
+  var f = $("tagq").value.trim().toLowerCase();
+  var h = "", shown = 0;
+  /* selected ones always visible */
+  UI.tags.forEach(function (t) {
+    h += '<button class="chip on" data-t="' + t + '">' + esc(D.tags[t]) + "</button>";
+  });
+  for (var i = 0; i < tagOrder.length && shown < 90; i++) {
+    var t = tagOrder[i];
+    if (UI.tags.indexOf(t) >= 0) continue;
+    if (f && D.tags[t].indexOf(f) < 0) continue;
+    h += '<button class="chip" data-t="' + t + '">' + esc(D.tags[t]) +
+         "<i>" + tagCount[t] + "</i></button>";
+    shown++;
+  }
+  $("tags").innerHTML = h || '<span style="color:var(--fg3);font-size:12px">No genres match.</span>';
+  $("gclear").hidden = !UI.tags.length;
+}
+
+/* ============ filter + sort ============ */
+var sortCache = {};
+function sortedBase() {
+  if (sortCache[UI.sort]) return sortCache[UI.sort];
+  var idx = new Array(ST.length);
+  for (var i = 0; i < ST.length; i++) idx[i] = i;
+  if (UI.sort === "pop") {
+    /* data already arrives ordered by popularity */
+  } else if (UI.sort === "votes") {
+    idx.sort(function (x, y) { return ST[y][N_VOTE] - ST[x][N_VOTE]; });
+  } else if (UI.sort === "br") {
+    idx.sort(function (x, y) { return ST[y][N_BR] - ST[x][N_BR] || ST[y][N_CLICK] - ST[x][N_CLICK]; });
+  } else if (UI.sort === "name") {
+    var coll = new Intl.Collator(undefined, {
+      sensitivity: "base", numeric: true, ignorePunctuation: true
+    });
+    idx.sort(function (x, y) { return coll.compare(ST[x][N], ST[y][N]); });
+  }
+  sortCache[UI.sort] = idx;
+  return idx;
+}
+
+function apply() {
+  var base = sortedBase();
+  var toks = UI.q.toLowerCase().split(/\s+/).filter(Boolean);
+  if (toks.length) buildHay();
+  var tags = UI.tags, nt = tags.length;
+  var out = [];
+
+  for (var p = 0; p < base.length; p++) {
+    var i = base[p], s = ST[i];
+    if (UI.favOnly && !favSet[s[N_URL]]) continue;
+    if (UI.hideDead && dead[s[N_URL]] && i !== current) continue;
+    if (UI.country !== "" && s[N_CI] !== UI.country) continue;
+    if (UI.lang !== "" && s[N_LANG].indexOf(UI.lang) < 0) continue;
+    if (UI.minbr && s[N_BR] < UI.minbr) continue;
+    if (UI.httpsOnly && !s[N_SCH]) continue;
+    if (nt) {
+      var hit = false;
+      for (var t = 0; t < nt; t++) if (s[N_TAG].indexOf(tags[t]) >= 0) { hit = true; break; }
+      if (!hit) continue;
+    }
+    if (toks.length) {
+      var h = HAY[i], ok = true;
+      for (var k = 0; k < toks.length; k++) if (h.indexOf(toks[k]) < 0) { ok = false; break; }
+      if (!ok) continue;
+    }
+    out.push(i);
+  }
+  filtered = out;
+  paintBar();
+  elSizer.style.height = filtered.length * ROW_H + "px";
+  elScroll.scrollTop = 0;
+  draw(true);
+}
+
+function paintBar() {
+  $("n").textContent = filtered.length.toLocaleString();
+  $("nlbl").textContent = (UI.favOnly ? "favorite" : "station") + (filtered.length === 1 ? "" : "s");
+  var h = "";
+  function pill(label, kind, val) {
+    h += '<span class="pill">' + esc(label) +
+         '<button data-x="' + kind + '" data-v="' + val + '" title="Remove">' +
+         '<svg class="ico" style="width:12px;height:12px" viewBox="0 0 24 24">' +
+         '<path d="M6 6l12 12M18 6L6 18"/></svg></button></span>';
+  }
+  if (UI.country !== "") pill(COUNTRY[UI.country], "country", "");
+  if (UI.lang !== "") pill(D.langs[UI.lang], "lang", "");
+  UI.tags.forEach(function (t) { pill(D.tags[t], "tag", t); });
+  if (UI.minbr) pill(UI.minbr + "+ kbps", "br", "");
+  if (UI.httpsOnly) pill("HTTPS only", "https", "");
+  $("pills").innerHTML = h;
+}
+
+/* ============ virtual list ============ */
+var lastStart = -1, lastEnd = -1;
+function draw(force) {
+  var top = elScroll.scrollTop, h = elScroll.clientHeight;
+  var vis = Math.ceil(h / ROW_H);
+  var start = Math.max(0, Math.floor(top / ROW_H) - 6);
+  var end = Math.min(filtered.length, start + vis + 12);
+  if (!force && start === lastStart && end === lastEnd) return;
+  lastStart = start; lastEnd = end;
+
+  if (!filtered.length) {
+    elRows.style.transform = "translateY(0)";
+    elRows.innerHTML =
+      '<div class="empty"><b>No stations match</b>' +
+      "Try a broader search or drop a filter." +
+      '<div><button id="reset">Clear everything</button></div></div>';
+    return;
+  }
+  var out = "";
+  for (var p = start; p < end; p++) out += rowHTML(filtered[p], p);
+  elRows.style.transform = "translateY(" + start * ROW_H + "px)";
+  elRows.innerHTML = out;
+}
+
+var HUES = [188, 260, 22, 330, 150, 210, 46, 288, 4, 170, 240, 108];
+function tileStyle(name) {
+  var x = 0;
+  for (var i = 0; i < name.length; i++) x = (x * 31 + name.charCodeAt(i)) | 0;
+  x = Math.abs(x);
+  var h1 = HUES[x % HUES.length], h2 = (h1 + 32) % 360;
+  return "background:linear-gradient(140deg,hsl(" + h1 + " 62% 46%),hsl(" + h2 + " 58% 34%))";
+}
+function monogram(name) {
+  var w = name.replace(/[^\p{L}\p{N} ]/gu, " ").trim().split(/\s+/).filter(Boolean);
+  if (!w.length) return "?";
+  if (w.length === 1) return w[0].slice(0, 2).toUpperCase();
+  return (w[0][0] + w[1][0]).toUpperCase();
+}
+
+function rowHTML(i, pos) {
+  var s = ST[i], nm = s[N];
+  var sub = "", f = flag(cc(i)), c = country(i), stt = state(i);
+  if (c) sub += '<em>' + (f ? f + " " : "") + esc(c) + (stt ? ", " + esc(stt) : "") + "</em>";
+  var tg = tagnames(i);
+  if (tg.length) sub += (sub ? '<span class="sep">|</span>' : "") +
+                        '<span class="tags">' + esc(tg.slice(0, 4).join(", ")) + "</span>";
+  if (!sub) sub = '<em>No details</em>';
+  var br = s[N_BR] ? s[N_BR] + "k" : "";
+  var cd = codec(i);
+  var badge = (br || cd) ? '<span class="br">' + esc([br, cd].filter(Boolean).join(" ")) + "</span>" : "";
+  var isFav = !!favSet[s[N_URL]];
+  return '<div class="row' + (i === current ? " playing" : "") +
+    (dead[s[N_URL]] ? " dead" : "") + '" data-i="' + i + '">' +
+    '<div class="tile" style="' + tileStyle(nm) + '">' + esc(monogram(nm)) + "</div>" +
+    '<div class="meta"><div class="nm">' + esc(nm) + '</div><div class="sub">' + sub + "</div></div>" +
+    '<div class="right">' + badge +
+    '<button class="star' + (isFav ? " on" : "") + '" data-fav="' + i + '" title="Favorite">' +
+    '<svg class="ico' + (isFav ? " fill" : "") + '" viewBox="0 0 24 24">' +
+    '<path d="M12 4l2.5 5.2 5.5.8-4 3.9 1 5.6-5-2.7-5 2.7 1-5.6-4-3.9 5.5-.8z"/></svg></button>' +
+    "</div></div>";
+}
+
+elScroll.addEventListener("scroll", function () { draw(false); }, { passive: true });
+window.addEventListener("resize", function () { draw(true); });
+
+/* ============ audio ============ */
+var audio = new Audio();
+audio.preload = "none";
+audio.volume = LS.get("vol", 0.85);
+$("vol").value = audio.volume;
+var hls = null, playToken = 0, curMode = "idle";
+
+function stopHls() {
+  if (hls) { try { hls.destroy(); } catch (e) {} hls = null; }
+}
+
+function play(i) {
+  if (i == null || i < 0 || i >= ST.length) return;
+  var token = ++playToken;
+  current = i;
+  stopHls();
+  audio.pause();
+  audio.removeAttribute("src");
+  paintPlayer("connecting");
+  refreshRows();
+  pushRecent(i);
+
+  var u = url(i);
+  var isHls = ST[i][N_HLS] || /\.m3u8(\?|$)/i.test(u);
+
+  if (isHls && !audio.canPlayType("application/vnd.apple.mpegurl")) {
+    loadHlsJs(function (Hls) {
+      if (token !== playToken) return;
+      if (Hls && Hls.isSupported()) {
+        hls = new Hls({ enableWorker: true });
+        hls.on(Hls.Events.ERROR, function (_e, d) { if (d && d.fatal) fail(token); });
+        hls.loadSource(u);
+        hls.attachMedia(audio);
+        audio.play().catch(function () {});
+      } else {
+        audio.src = u; audio.play().catch(function () { fail(token); });
+      }
+    });
+    return;
+  }
+  audio.src = u;
+  audio.play().catch(function (e) {
+    if (token !== playToken) return;
+    if (e && e.name === "NotAllowedError") paintPlayer("paused");
+    else fail(token);
+  });
+}
+
+function loadHlsJs(cb) {
+  if (window.Hls) return cb(window.Hls);
+  if (loadHlsJs.pending) { loadHlsJs.q.push(cb); return; }
+  loadHlsJs.pending = true; loadHlsJs.q = [cb];
+  var s = document.createElement("script");
+  s.src = "https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js";
+  s.onload = s.onerror = function () {
+    loadHlsJs.q.forEach(function (f) { f(window.Hls || null); });
+    loadHlsJs.q = [];
+  };
+  document.head.appendChild(s);
+}
+
+function fail(token) {
+  if (token !== undefined && token !== playToken) return;
+  if (current < 0) return;
+  var k = key(current);
+  dead[k] = 1;
+  LS.set("dead", Object.keys(dead).slice(-4000));
+  paintPlayer("error");
+  refreshRows();
+  toast("“" + ST[current][N] + "” would not stream.", "Try another", function () {
+    randomPlay();
+  });
+}
+
+audio.addEventListener("playing", function () { paintPlayer("playing"); });
+audio.addEventListener("pause", function () {
+  /* the pause() we issue while switching stations queues its own event; it must
+     not overwrite the "connecting" state of the station we just moved to */
+  if (curMode === "connecting" || curMode === "idle") return;
+  paintPlayer("paused");
+});
+audio.addEventListener("waiting", function () {
+  if (curMode === "playing") paintPlayer("connecting");
+});
+audio.addEventListener("error", function () {
+  if (current < 0) return;
+  /* a dying stream can report its error after we have already tuned away:
+     only trust the error if the element still holds the current station */
+  if (audio.src && audio.src !== url(current)) return;
+  fail();
+});
+audio.addEventListener("volumechange", function () {
+  LS.set("vol", audio.volume);
+  $("vol").value = audio.volume;
+  $("mutei").style.opacity = (audio.muted || audio.volume === 0) ? ".4" : "1";
+});
+
+function paintPlayer(mode) {
+  var pl = $("player");
+  curMode = mode;
+  if (current < 0) { pl.classList.add("idle"); return; }
+  pl.classList.remove("idle");
+  var i = current, s = ST[i];
+  $("pnm").textContent = s[N];
+  var t = $("ptile");
+  t.style.cssText = tileStyle(s[N]);
+  t.textContent = monogram(s[N]);
+  t.classList.toggle("spin", mode === "connecting");
+  $("pp").disabled = false;
+
+  var st = $("pst"), bits = [];
+  var c = country(i), f = flag(cc(i));
+  if (c) bits.push((f ? f + " " : "") + c);
+  if (s[N_BR]) bits.push(s[N_BR] + " kbps");
+  var cd = codec(i); if (cd) bits.push(cd);
+  var detail = bits.join("  ·  ");
+  st.classList.toggle("err", mode === "error");
+  var dot = '<span class="live' + (mode === "playing" ? " on" : "") + '"></span>';
+  if (mode === "connecting") st.innerHTML = dot + "Connecting…" + (detail ? "  ·  " + esc(detail) : "");
+  else if (mode === "playing") st.innerHTML = dot + "On air" + (detail ? "  ·  " + esc(detail) : "");
+  else if (mode === "paused") st.innerHTML = "Paused" + (detail ? "  ·  " + esc(detail) : "");
+  else if (mode === "ready") st.innerHTML = "Last played" + (detail ? "  ·  " + esc(detail) : "");
+  else st.innerHTML = "Stream unavailable" + (detail ? "  ·  " + esc(detail) : "");
+
+  $("ppi").innerHTML = (mode === "playing" || mode === "connecting")
+    ? '<path d="M7 5h4v14H7zM13 5h4v14h-4z"/>' : '<path d="M8 5l12 7-12 7z"/>';
+
+  var fb = $("pfav"); fb.hidden = false;
+  var on = !!favSet[s[N_URL]];
+  fb.classList.toggle("on", on);
+  fb.firstElementChild.classList.toggle("fill", on);
+
+  var hp = $("php"), hu = home(i);
+  if (hu) { hp.hidden = false; hp.href = hu; } else hp.hidden = true;
+
+  document.title = (mode === "playing" ? "▶ " : "") + s[N] + " — Radio Atlas";
+}
+
+function toggleP() {
+  if (current < 0) { randomPlay(); return; }
+  if (audio.paused) {
+    if (!audio.src && !hls) { play(current); return; }
+    audio.play().catch(function () { fail(); });
+  } else audio.pause();
+}
+
+/* ============ favorites & recents ============ */
+function toggleFav(i) {
+  var k = key(i);
+  if (favSet[k]) { delete favSet[k]; favs = favs.filter(function (x) { return x !== k; }); }
+  else { favSet[k] = 1; favs.push(k); }
+  LS.set("favs", favs);
+  $("favn").textContent = favs.length ? " " + favs.length : "";
+  if (UI.favOnly) apply(); else refreshRows();
+  if (i === current) paintPlayer(audio.paused ? "paused" : "playing");
+}
+$("favn").textContent = favs.length ? " " + favs.length : "";
+
+var recent = LS.get("recent", []);
+function pushRecent(i) {
+  var k = key(i);
+  recent = [k].concat(recent.filter(function (x) { return x !== k; })).slice(0, 60);
+  LS.set("recent", recent);
+}
+
+function refreshRows() { draw(true); }
+
+/* ============ random ============ */
+function randomPlay() {
+  var pool = filtered;
+  if (!pool.length) {
+    toast("Nothing in this list to pick from.");
+    return;
+  }
+  var tries = 0, i;
+  do {
+    i = pool[(Math.random() * pool.length) | 0];
+    tries++;
+  } while (tries < 24 && (i === current || dead[ST[i][N_URL]]) && pool.length > 1);
+  play(i);
+  scrollTo_(i);
+}
+
+function scrollTo_(i) {
+  var p = filtered.indexOf(i);
+  if (p < 0) return;
+  var want = p * ROW_H - elScroll.clientHeight / 2 + ROW_H / 2;
+  elScroll.scrollTop = Math.max(0, want);
+  draw(true);
+}
+
+/* ============ toast ============ */
+var toastT = null;
+function toast(msg, actLabel, act) {
+  var el = $("toast");
+  $("tmsg").textContent = msg;
+  var b = $("tact");
+  if (actLabel) { b.hidden = false; b.textContent = actLabel; b.onclick = function () { hideToast(); act(); }; }
+  else b.hidden = true;
+  el.classList.add("show");
+  clearTimeout(toastT);
+  toastT = setTimeout(hideToast, actLabel ? 7000 : 3200);
+}
+function hideToast() { $("toast").classList.remove("show"); }
+
+/* ============ events ============ */
+var qT = null;
+$("q").addEventListener("input", function () {
+  $("qclear").hidden = !this.value;
+  clearTimeout(qT);
+  var v = this.value;
+  qT = setTimeout(function () { UI.q = v.trim(); apply(); }, 110);
+});
+$("qclear").addEventListener("click", function () {
+  $("q").value = ""; this.hidden = true; UI.q = ""; apply(); $("q").focus();
+});
+
+$("fcountry").addEventListener("change", function () {
+  UI.country = this.value === "" ? "" : +this.value; apply();
+});
+$("flang").addEventListener("change", function () {
+  UI.lang = this.value === "" ? "" : +this.value; apply();
+});
+$("fbr").addEventListener("change", function () { UI.minbr = +this.value; apply(); });
+$("fhttps").addEventListener("change", function () { UI.httpsOnly = this.checked; apply(); });
+$("fdead").addEventListener("change", function () { UI.hideDead = this.checked; apply(); });
+$("sort").addEventListener("change", function () { UI.sort = this.value; apply(); });
+
+$("tagq").addEventListener("input", renderTags);
+$("tags").addEventListener("click", function (e) {
+  var b = e.target.closest("[data-t]"); if (!b) return;
+  var t = +b.dataset.t, p = UI.tags.indexOf(t);
+  if (p >= 0) UI.tags.splice(p, 1); else UI.tags.push(t);
+  renderTags(); apply();
+});
+$("gclear").addEventListener("click", function () { UI.tags = []; renderTags(); apply(); });
+
+$("pills").addEventListener("click", function (e) {
+  var b = e.target.closest("[data-x]"); if (!b) return;
+  var x = b.dataset.x;
+  if (x === "country") { UI.country = ""; $("fcountry").value = ""; }
+  else if (x === "lang") { UI.lang = ""; $("flang").value = ""; }
+  else if (x === "tag") { UI.tags = UI.tags.filter(function (t) { return t !== +b.dataset.v; }); renderTags(); }
+  else if (x === "br") { UI.minbr = 0; $("fbr").value = "0"; }
+  else if (x === "https") { UI.httpsOnly = false; $("fhttps").checked = false; }
+  apply();
+});
+
+elRows.addEventListener("click", function (e) {
+  var f = e.target.closest("[data-fav]");
+  if (f) { e.stopPropagation(); toggleFav(+f.dataset.fav); return; }
+  if (e.target.id === "reset") { resetAll(); return; }
+  var r = e.target.closest(".row"); if (!r) return;
+  var i = +r.dataset.i;
+  if (i === current && !audio.paused) audio.pause();
+  else play(i);
+});
+
+function resetAll() {
+  UI.q = ""; UI.country = ""; UI.lang = ""; UI.tags = []; UI.minbr = 0;
+  UI.httpsOnly = false; UI.favOnly = false;
+  $("q").value = ""; $("qclear").hidden = true;
+  $("fcountry").value = ""; $("flang").value = ""; $("fbr").value = "0";
+  $("fhttps").checked = false;
+  $("favview").classList.remove("on");
+  renderTags(); apply();
+}
+
+$("rand").addEventListener("click", randomPlay);
+$("pp").addEventListener("click", toggleP);
+$("pfav").addEventListener("click", function () { if (current >= 0) toggleFav(current); });
+
+$("favview").addEventListener("click", function () {
+  UI.favOnly = !UI.favOnly;
+  this.classList.toggle("on", UI.favOnly);
+  if (UI.favOnly && !favs.length) {
+    toast("No favorites yet — tap the star on any station.");
+  }
+  apply();
+});
+
+$("vol").addEventListener("input", function () {
+  audio.volume = +this.value;
+  if (audio.volume > 0) audio.muted = false;
+});
+$("mute").addEventListener("click", function () { audio.muted = !audio.muted; });
+
+$("theme").addEventListener("click", function () {
+  var cur = document.documentElement.getAttribute("data-theme");
+  if (!cur) cur = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  var next = cur === "dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", next);
+  LS.set("theme", next);
+});
+
+$("mfilt").addEventListener("click", function () { $("side").classList.toggle("open"); });
+
+/* export / import favorites */
+$("exp").addEventListener("click", function () {
+  var rows = favs.map(function (k) {
+    var i = byKey[k];
+    return i === undefined ? { url: k } : { name: ST[i][N], url: url(i), country: country(i) };
+  });
+  var blob = new Blob([JSON.stringify({ app: "radio-atlas", v: 1, favorites: rows }, null, 2)],
+                      { type: "application/json" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "radio-favorites.json";
+  a.click();
+  setTimeout(function () { URL.revokeObjectURL(a.href); }, 5000);
+});
+$("imp").addEventListener("click", function () { $("impf").click(); });
+$("impf").addEventListener("change", function () {
+  var f = this.files && this.files[0]; if (!f) return;
+  var fr = new FileReader();
+  fr.onload = function () {
+    var added = 0;
+    try {
+      var j = JSON.parse(fr.result);
+      var list = Array.isArray(j) ? j : (j.favorites || []);
+      list.forEach(function (row) {
+        var u = (typeof row === "string" ? row : row.url || "").replace(/^https?:\/\//i, "").replace(/\/+$/, "");
+        if (!u) return;
+        var k = null;
+        if (byKey[u] !== undefined) k = u;
+        else { for (var kk in byKey) { if (kk.toLowerCase() === u.toLowerCase()) { k = kk; break; } } }
+        if (k && !favSet[k]) { favSet[k] = 1; favs.push(k); added++; }
+      });
+    } catch (e) { toast("That file was not a favorites export."); return; }
+    LS.set("favs", favs);
+    $("favn").textContent = favs.length ? " " + favs.length : "";
+    toast(added ? "Added " + added + " favorite" + (added === 1 ? "" : "s") + "." : "Nothing new to add.");
+    apply();
+  };
+  fr.readAsText(f);
+  this.value = "";
+});
+
+document.addEventListener("keydown", function (e) {
+  var t = e.target, typing = t && (t.tagName === "INPUT" || t.tagName === "SELECT" || t.tagName === "TEXTAREA");
+  if (e.key === "Escape") { if (typing) t.blur(); hideToast(); return; }
+  if (typing) return;
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key === "/") { e.preventDefault(); $("q").focus(); $("q").select(); }
+  else if (e.key === " ") { e.preventDefault(); toggleP(); }
+  else if (e.key === "r" || e.key === "R") randomPlay();
+  else if (e.key === "f" || e.key === "F") { if (current >= 0) toggleFav(current); }
+  else if (e.key === "v" || e.key === "V") $("favview").click();
+});
+
+/* ============ boot ============ */
+$("total").textContent = ST.length.toLocaleString() + " stations · " +
+  (function () { var n = 0; for (var i = 0; i < D.countries.length; i++) if (countryCount[i]) n++; return n; })() +
+  " countries";
+$("q").placeholder = "Search " + ST.length.toLocaleString() + " stations, countries, genres...";
+
+renderTags();
+apply();
+
+/* re-arm the last station played, without autoplaying (browsers block that anyway) */
+if (recent.length && byKey[recent[0]] !== undefined) {
+  current = byKey[recent[0]];
+  paintPlayer("ready");
+  refreshRows();
+}
+
+$("boot").remove();
+$("app").hidden = false;
+
+})();
+</script>
