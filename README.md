@@ -1,6 +1,6 @@
 # Radio Atlas
 
-A single-file internet radio browser: **43,957 stations from 218 countries**, searchable,
+A single-file internet radio browser: **33,805 stations from 210 countries**, searchable,
 playable, shufflable, with a favorites list you own.
 
 Open `radio.html` in a browser. That's the whole install — no server, no build step, no
@@ -14,11 +14,11 @@ open radio.html
 
 - **Search** — one box over station name, country, region, genre and language. Multiple
   words are ANDed (`bbc radio`, `jazz france`). Results update as you type.
-- **Filter** — country, language, genre chips, minimum bitrate, HTTPS-only.
+- **Filter** — country, language, genre chips, minimum bitrate.
 - **Play** — click any row. The bottom bar shows what's on air, bitrate, codec, and links
   to the station's own site.
 - **Random** — the `Random` button (or `R`) picks from *whatever list is currently on
-  screen*. So it shuffles all 44k by default, but filter to `jazz` + `Italy` first and it
+  screen*. So it shuffles all 34k by default, but filter to `jazz` + `Italy` first and it
   shuffles only those.
 - **Favorites** — star any station. `Favorites` (or `V`) switches the list to just those,
   and `Random` then picks only from your favorites. Stored in the browser, and
@@ -42,14 +42,16 @@ open radio.html
 | `V` | toggle favorites view |
 | `Esc` | clear focus / dismiss |
 
-## Why it's a local file and not a hosted page
+## Every station plays over HTTPS
 
-About 38% of these stations only stream over plain `http://`. A page served over HTTPS
-cannot play them — the browser blocks them as mixed content, and you'd silently lose more
-than a third of the list. Opened from disk, every stream is reachable.
+The page works opened from disk or hosted on an `https://` site. A page served over
+HTTPS can't play plain `http://` streams, because the browser blocks them as mixed
+content. So at build time every stream was connected to over HTTPS and kept only if it
+actually sent back audio. Of the stations registered as http-only, about 8,000 turned out
+to serve the same stream over HTTPS too, so they're kept with an `https://` URL.
 
-Favorites live in this file's `localStorage`, so keep `radio.html` where it is (moving it
-changes the origin and the browser hands you a fresh, empty store). Use **Export
+Favorites live in the page's `localStorage`, which is tied to where the page is opened
+from (a different file path or a different site gets a fresh, empty store). Use **Export
 favorites** before moving it.
 
 ## Dead streams
@@ -59,8 +61,9 @@ in the list, and offers to jump to another. **Hide streams that failed here** (o
 default) keeps them out of your results and out of the random pool. That list is local to
 you — nothing is reported anywhere.
 
-Stations already flagged broken upstream were excluded at build time, but a stream that
-worked this morning can still be gone tonight.
+Stations flagged broken upstream, and every stream that wouldn't connect when the list
+was built (see below), are already excluded. Still, a stream that worked this morning can
+be gone tonight.
 
 ## Rebuilding the station list
 
@@ -71,20 +74,30 @@ database (public domain). To pull a fresh copy:
 build/refresh.sh
 ```
 
-That runs three steps, which you can also run individually from `build/`:
+That runs four steps, which you can also run individually from `build/`. It takes about
+half an hour, almost all of it spent probing streams:
 
 | Script | Does |
 | --- | --- |
 | `fetch_stations.py` | pages the API into `data.json`'s raw source, `stations.json` (~71 MB, 59,828 rows) |
 | `build_data.py` | dedupes and dictionary-compresses it to `data.json` (~6 MB) |
+| `probe_streams.py` | connects to every stream over HTTPS and drops the ones that won't play (rewrites `data.json`, ~4.8 MB) |
 | `assemble.py` | inlines `data.json` into `template.html` → `radio.html` |
 
 Edit the UI in `build/template.html`, not in `radio.html` — the latter is generated.
 
-### How 59,828 rows become 43,957
+### How 59,828 rows become 33,805
 
 Deduped twice: first by stream URL, then by station name within a country, each time
 keeping the most-played copy. The same station is often registered many times over.
+That leaves 43,957. Then `probe_streams.py` keeps only the streams a browser on an
+HTTPS page could really play: reachable over `https://` with a valid certificate, no
+redirect back to `http://`, a 200 response with audio in it rather than an HTML page,
+and, for HLS, CORS headers (outside Safari, hls.js fetches the playlist itself). Anything
+that times out or won't connect gets a second, slower try before it's dropped. That
+removes about 10,000 more: mostly bad or missing certificates on http-only servers,
+timeouts, and dead hosts.
+
 Each row is then dictionary-encoded — countries, languages, genres and codecs are stored
 once and referenced by integer — which is what gets 71 MB down to 6 MB.
 
@@ -98,4 +111,4 @@ treated as unknown.
   station name instead.
 - HLS (`.m3u8`) streams work natively in Safari; elsewhere hls.js is lazy-loaded from a CDN
   the first time one is played.
-- The list renders virtually, so scrolling 44,000 rows keeps about 22 in the DOM.
+- The list renders virtually, so scrolling 34,000 rows keeps about 22 in the DOM.

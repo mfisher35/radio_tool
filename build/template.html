@@ -299,9 +299,6 @@ footer a.hp:hover{color:var(--accent);background:var(--bg3)}
           <option value="320">320 kbps and up</option>
         </select>
         <label class="sw" style="margin-top:8px">
-          <input type="checkbox" id="fhttps"> Secure (HTTPS) streams only
-        </label>
-        <label class="sw">
           <input type="checkbox" id="fdead" checked> Hide streams that failed here
         </label>
       </div>
@@ -447,7 +444,7 @@ function buildHay() {
 /* ============ state ============ */
 var UI = {
   q: "", country: "", lang: "", tags: [], minbr: 0,
-  httpsOnly: false, hideDead: true, sort: "pop", favOnly: false
+  hideDead: true, sort: "pop", favOnly: false
 };
 var filtered = [];
 var current = -1;            // index of station loaded in the player
@@ -562,7 +559,6 @@ function apply() {
     if (UI.country !== "" && s[N_CI] !== UI.country) continue;
     if (UI.lang !== "" && s[N_LANG].indexOf(UI.lang) < 0) continue;
     if (UI.minbr && s[N_BR] < UI.minbr) continue;
-    if (UI.httpsOnly && !s[N_SCH]) continue;
     if (nt) {
       var hit = false;
       for (var t = 0; t < nt; t++) if (s[N_TAG].indexOf(tags[t]) >= 0) { hit = true; break; }
@@ -596,7 +592,6 @@ function paintBar() {
   if (UI.lang !== "") pill(D.langs[UI.lang], "lang", "");
   UI.tags.forEach(function (t) { pill(D.tags[t], "tag", t); });
   if (UI.minbr) pill(UI.minbr + "+ kbps", "br", "");
-  if (UI.httpsOnly) pill("HTTPS only", "https", "");
   $("pills").innerHTML = h;
 }
 
@@ -671,13 +666,18 @@ audio.preload = "none";
 audio.volume = LS.get("vol", 0.85);
 $("vol").value = audio.volume;
 var hls = null, playToken = 0, curMode = "idle";
+/* direction of the next/prev press that tuned the current station (0 = picked by
+   hand), and how many stations in a row have failed while skipping that way */
+var skipDir = 0, skipRun = 0;
 
 function stopHls() {
   if (hls) { try { hls.destroy(); } catch (e) {} hls = null; }
 }
 
-function play(i) {
+function play(i, dir) {
   if (i == null || i < 0 || i >= ST.length) return;
+  skipDir = dir || 0;
+  if (!skipDir) skipRun = 0;
   if (!goingBack && current >= 0 && current !== i) {
     back.push(current);
     if (back.length > 60) back.shift();
@@ -739,12 +739,21 @@ function fail(token) {
   LS.set("dead", Object.keys(dead).slice(-4000));
   paintPlayer("error");
   refreshRows();
+  /* a dead stream reached with next/prev just moves on the same way. Stopping
+     there leaves no media playing, and the browser then drops the media session,
+     so car / headset buttons would stop reaching the page at all */
+  if (skipDir && ++skipRun <= 8) {
+    var d = skipDir, t = playToken;
+    toast("“" + ST[current][N] + "” would not stream, skipping.");
+    setTimeout(function () { if (t === playToken) step(d); }, 600);
+    return;
+  }
   toast("“" + ST[current][N] + "” would not stream.", "Try another", function () {
     randomPlay();
   });
 }
 
-audio.addEventListener("playing", function () { paintPlayer("playing"); });
+audio.addEventListener("playing", function () { skipRun = 0; paintPlayer("playing"); });
 audio.addEventListener("pause", function () {
   /* the pause() we issue while switching stations queues its own event; it must
      not overwrite the "connecting" state of the station we just moved to */
@@ -839,7 +848,7 @@ function pushRecent(i) {
 function refreshRows() { draw(true); }
 
 /* ============ random ============ */
-function randomPlay() {
+function randomPlay(dir) {
   var pool = filtered;
   if (!pool.length) {
     toast("Nothing in this list to pick from.");
@@ -850,14 +859,14 @@ function randomPlay() {
     i = pool[(Math.random() * pool.length) | 0];
     tries++;
   } while (tries < 24 && (i === current || dead[ST[i][N_URL]]) && pool.length > 1);
-  play(i);
+  play(i, dir);
   scrollTo_(i);
 }
 
 /* next / previous: walk the list in order when the favorites view is on,
    otherwise there is no order worth walking, so just shuffle */
 function step(dir) {
-  if (!UI.favOnly) { if (dir < 0) goBack(); else randomPlay(); return; }
+  if (!UI.favOnly) { if (dir < 0) goBack(); else randomPlay(dir); return; }
   var pool = filtered, n = pool.length;
   if (!n) { toast("Nothing in this list to pick from."); return; }
   var p = pool.indexOf(current), i;
@@ -867,7 +876,7 @@ function step(dir) {
     i = pool[p];
     if (!dead[ST[i][N_URL]] || tries === n - 1) break;
   }
-  play(i);
+  play(i, dir);
   scrollTo_(i);
 }
 
@@ -879,11 +888,11 @@ function goBack() {
     var i = back.pop();
     if (i === current || dead[ST[i][N_URL]]) continue;
     goingBack = true;
-    play(i);
+    play(i, -1);
     scrollTo_(i);
     return;
   }
-  randomPlay();
+  randomPlay(-1);
 }
 
 /* ============ media session (car / bluetooth / lock-screen controls) ============ */
@@ -907,7 +916,7 @@ function paintSession(mode) {
     });
   } catch (e) {}
   MS.playbackState = (mode === "playing" || mode === "connecting") ? "playing"
-    : (mode === "paused" ? "paused" : "none");
+    : "paused";
 }
 
 function scrollTo_(i) {
@@ -951,7 +960,6 @@ $("flang").addEventListener("change", function () {
   UI.lang = this.value === "" ? "" : +this.value; apply();
 });
 $("fbr").addEventListener("change", function () { UI.minbr = +this.value; apply(); });
-$("fhttps").addEventListener("change", function () { UI.httpsOnly = this.checked; apply(); });
 $("fdead").addEventListener("change", function () { UI.hideDead = this.checked; apply(); });
 $("sort").addEventListener("change", function () { UI.sort = this.value; apply(); });
 
@@ -971,7 +979,6 @@ $("pills").addEventListener("click", function (e) {
   else if (x === "lang") { UI.lang = ""; $("flang").value = ""; }
   else if (x === "tag") { UI.tags = UI.tags.filter(function (t) { return t !== +b.dataset.v; }); renderTags(); }
   else if (x === "br") { UI.minbr = 0; $("fbr").value = "0"; }
-  else if (x === "https") { UI.httpsOnly = false; $("fhttps").checked = false; }
   apply();
 });
 
@@ -987,15 +994,14 @@ elRows.addEventListener("click", function (e) {
 
 function resetAll() {
   UI.q = ""; UI.country = ""; UI.lang = ""; UI.tags = []; UI.minbr = 0;
-  UI.httpsOnly = false; UI.favOnly = false;
+  UI.favOnly = false;
   $("q").value = ""; $("qclear").hidden = true;
   $("fcountry").value = ""; $("flang").value = ""; $("fbr").value = "0";
-  $("fhttps").checked = false;
   $("favview").classList.remove("on");
   renderTags(); apply();
 }
 
-$("rand").addEventListener("click", randomPlay);
+$("rand").addEventListener("click", function () { randomPlay(); });
 $("pp").addEventListener("click", toggleP);
 $("pfav").addEventListener("click", function () { if (current >= 0) toggleFav(current); });
 
