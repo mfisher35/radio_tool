@@ -695,7 +695,11 @@ function play(i, dir) {
   var u = url(i);
   var isHls = ST[i][N_HLS] || /\.m3u8(\?|$)/i.test(u);
 
-  if (isHls && !audio.canPlayType("application/vnd.apple.mpegurl")) {
+  /* hls.js wherever Media Source exists. Chrome now claims native HLS too, but its
+     player fails on some CDNs (All India Radio's) that hls.js plays fine; only
+     fall back to native where there is no MSE at all (iPhone Safari) */
+  var mse = window.MediaSource || window.ManagedMediaSource;
+  if (isHls && (mse || !audio.canPlayType("application/vnd.apple.mpegurl"))) {
     loadHlsJs(function (Hls) {
       if (token !== playToken) return;
       if (Hls && Hls.isSupported()) {
