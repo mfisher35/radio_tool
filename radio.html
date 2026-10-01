@@ -318,7 +318,7 @@ footer a.hp:hover{color:var(--accent);background:var(--bg3)}
       <div class="fg" style="color:var(--fg3);font-size:11.5px;line-height:1.55">
         <b style="color:var(--fg2);display:block;margin-bottom:4px">Shortcuts</b>
         / search &nbsp;&middot;&nbsp; Space play/pause<br>
-        R random &nbsp;&middot;&nbsp; F favorite &nbsp;&middot;&nbsp; V favorites view
+        R random &nbsp;&middot;&nbsp; N / P next / prev &nbsp;&middot;&nbsp; F favorite &nbsp;&middot;&nbsp; V favorites view
       </div>
     </aside>
 
@@ -801,6 +801,7 @@ function paintPlayer(mode) {
   if (hu) { hp.hidden = false; hp.href = hu; } else hp.hidden = true;
 
   document.title = (mode === "playing" ? "▶ " : "") + s[N] + " — Radio Atlas";
+  paintSession(mode);
 }
 
 function toggleP() {
@@ -846,6 +847,47 @@ function randomPlay() {
   } while (tries < 24 && (i === current || dead[ST[i][N_URL]]) && pool.length > 1);
   play(i);
   scrollTo_(i);
+}
+
+/* next / previous: walk the list in order when the favorites view is on,
+   otherwise there is no order worth walking, so just shuffle */
+function step(dir) {
+  if (!UI.favOnly) { randomPlay(); return; }
+  var pool = filtered, n = pool.length;
+  if (!n) { toast("Nothing in this list to pick from."); return; }
+  var p = pool.indexOf(current), i;
+  if (p < 0) p = dir > 0 ? -1 : n;
+  for (var tries = 0; tries < n; tries++) {
+    p = (p + dir + n) % n;
+    i = pool[p];
+    if (!dead[ST[i][N_URL]] || tries === n - 1) break;
+  }
+  play(i);
+  scrollTo_(i);
+}
+
+/* ============ media session (car / bluetooth / lock-screen controls) ============ */
+var MS = "mediaSession" in navigator ? navigator.mediaSession : null;
+if (MS) {
+  var msAct = function (a, f) { try { MS.setActionHandler(a, f); } catch (e) {} };
+  msAct("play", function () { if (audio.paused) toggleP(); });
+  msAct("pause", function () { if (!audio.paused) toggleP(); });
+  msAct("stop", function () { audio.pause(); });
+  msAct("nexttrack", function () { step(1); });
+  msAct("previoustrack", function () { step(-1); });
+}
+function paintSession(mode) {
+  if (!MS || current < 0) return;
+  var s = ST[current];
+  try {
+    MS.metadata = new MediaMetadata({
+      title: s[N],
+      artist: [country(current), codec(current), s[N_BR] ? s[N_BR] + " kbps" : ""].filter(Boolean).join(" · "),
+      album: UI.favOnly ? "Radio Atlas · Favorites" : "Radio Atlas"
+    });
+  } catch (e) {}
+  MS.playbackState = (mode === "playing" || mode === "connecting") ? "playing"
+    : (mode === "paused" ? "paused" : "none");
 }
 
 function scrollTo_(i) {
@@ -1011,6 +1053,8 @@ document.addEventListener("keydown", function (e) {
   if (e.key === "/") { e.preventDefault(); $("q").focus(); $("q").select(); }
   else if (e.key === " ") { e.preventDefault(); toggleP(); }
   else if (e.key === "r" || e.key === "R") randomPlay();
+  else if (e.key === "n" || e.key === "N") step(1);
+  else if (e.key === "p" || e.key === "P") step(-1);
   else if (e.key === "f" || e.key === "F") { if (current >= 0) toggleFav(current); }
   else if (e.key === "v" || e.key === "V") $("favview").click();
 });
