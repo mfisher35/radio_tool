@@ -678,6 +678,11 @@ function stopHls() {
 
 function play(i) {
   if (i == null || i < 0 || i >= ST.length) return;
+  if (!goingBack && current >= 0 && current !== i) {
+    back.push(current);
+    if (back.length > 60) back.shift();
+  }
+  goingBack = false;
   var token = ++playToken;
   current = i;
   stopHls();
@@ -852,7 +857,7 @@ function randomPlay() {
 /* next / previous: walk the list in order when the favorites view is on,
    otherwise there is no order worth walking, so just shuffle */
 function step(dir) {
-  if (!UI.favOnly) { randomPlay(); return; }
+  if (!UI.favOnly) { if (dir < 0) goBack(); else randomPlay(); return; }
   var pool = filtered, n = pool.length;
   if (!n) { toast("Nothing in this list to pick from."); return; }
   var p = pool.indexOf(current), i;
@@ -864,6 +869,21 @@ function step(dir) {
   }
   play(i);
   scrollTo_(i);
+}
+
+/* previous outside the favorites view: retrace the stations actually played,
+   newest first, and only shuffle once there is nothing left to go back to */
+var back = [], goingBack = false;
+function goBack() {
+  while (back.length) {
+    var i = back.pop();
+    if (i === current || dead[ST[i][N_URL]]) continue;
+    goingBack = true;
+    play(i);
+    scrollTo_(i);
+    return;
+  }
+  randomPlay();
 }
 
 /* ============ media session (car / bluetooth / lock-screen controls) ============ */
@@ -1069,6 +1089,8 @@ renderTags();
 apply();
 
 /* re-arm the last station played, without autoplaying (browsers block that anyway) */
+/* seed "previous" with last session's history so it works right after a reload */
+for (var r = recent.length - 1; r > 0; r--) if (byKey[recent[r]] !== undefined) back.push(byKey[recent[r]]);
 if (recent.length && byKey[recent[0]] !== undefined) {
   current = byKey[recent[0]];
   paintPlayer("ready");

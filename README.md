@@ -27,7 +27,8 @@ open radio.html
 - **Car & headset controls** — next/previous on a car stereo, Bluetooth headset, lock
   screen or keyboard media keys work too (via the Media Session API). In the favorites
   view they step through your favorites in order, wrapping around and skipping dead
-  streams; anywhere else they pick a random station from the current list.
+  streams. Anywhere else, next picks a random station from the current list and previous
+  goes back through the stations you've actually played.
 
 ### Keyboard
 
@@ -36,7 +37,7 @@ open radio.html
 | `/` | focus search |
 | `Space` | play / pause |
 | `R` | random station from the current list |
-| `N` / `P` | next / previous station (in order in favorites view, random otherwise) |
+| `N` / `P` | next / previous station (in order in favorites view; otherwise next is random, previous goes back) |
 | `F` | favorite the playing station |
 | `V` | toggle favorites view |
 | `Esc` | clear focus / dismiss |
