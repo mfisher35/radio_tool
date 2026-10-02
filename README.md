@@ -4,7 +4,7 @@ A single-file internet radio browser: **33,805 stations from 210 countries**, se
 playable, shufflable, with a favorites list you own.
 
 Open `radio.html` in a browser. That's the whole install — no server, no build step, no
-network call except the audio streams themselves.
+network call except the audio streams themselves and one visitor-count request.
 
 ```sh
 open radio.html
@@ -29,6 +29,13 @@ open radio.html
   view they step through your favorites in order, wrapping around and skipping dead
   streams. Anywhere else, next picks a random station from the current list and previous
   goes back through the stations you've actually played.
+
+- **Visitor counter** — the player bar shows how many unique visitors the page has had.
+  The first time a browser opens the page it increments a shared count at
+  [Abacus](https://abacus.jasoncameron.dev/) (a free counter API; namespace
+  `radio-atlas-k7q2`), and sets a `localStorage` flag so later visits only read the
+  number. Nothing about the visitor is sent beyond the request itself. If the service is
+  unreachable the counter just stays hidden.
 
 ### Keyboard
 

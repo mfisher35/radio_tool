@@ -198,6 +198,7 @@ footer.idle{color:var(--fg3)}
 .vol input{width:88px;accent-color:var(--accent)}
 footer a.hp{color:var(--fg3);display:flex;padding:7px;border-radius:50%}
 footer a.hp:hover{color:var(--accent);background:var(--bg3)}
+.visits{font-size:11px;color:var(--fg3);font-variant-numeric:tabular-nums;white-space:nowrap}
 
 /* ---------- toast ---------- */
 #toast{
@@ -232,6 +233,7 @@ footer a.hp:hover{color:var(--accent);background:var(--bg3)}
 @media (max-width:420px){
   .brand b{display:none}
   .br{display:none}
+  .visits{display:none}
 }
 </style>
 
@@ -351,6 +353,7 @@ footer a.hp:hover{color:var(--accent);background:var(--bg3)}
       </div>
     </div>
     <div class="right">
+      <span class="visits" id="visits" title="Unique visitors" hidden></span>
       <button class="star" id="pfav" title="Favorite (F)" hidden>
         <svg class="ico" viewBox="0 0 24 24"><path d="M12 4l2.5 5.2 5.5.8-4 3.9 1 5.6-5-2.7-5 2.7 1-5.6-4-3.9 5.5-.8z"/></svg>
       </button>
@@ -1109,6 +1112,24 @@ if (recent.length && byKey[recent[0]] !== undefined) {
 
 $("boot").remove();
 $("app").hidden = false;
+
+/* unique visitor counter: the first visit from a browser increments a shared
+   count at abacus.jasoncameron.dev; later visits only read it */
+(function () {
+  var api = "https://abacus.jasoncameron.dev/", ns = "radio-atlas-k7q2", k = "visitors";
+  var seen = LS.get("visited", false);
+  if (!window.fetch) return;
+  fetch(api + (seen ? "get/" : "hit/") + ns + "/" + k)
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (j) {
+      if (!j || typeof j.value !== "number") return;
+      if (!seen) LS.set("visited", true);
+      var el = $("visits");
+      el.textContent = j.value.toLocaleString() + (j.value === 1 ? " visitor" : " visitors");
+      el.hidden = false;
+    })
+    .catch(function () {});
+})();
 
 })();
 </script>
