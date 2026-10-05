@@ -712,7 +712,8 @@ function play(i, dir) {
         hls.attachMedia(audio);
         audio.play().catch(function () {});
       } else {
-        audio.src = u; audio.play().catch(function () { fail(token); });
+        audio.src = u;
+        audio.play().catch(function (e) { if (!e || e.name !== "AbortError") fail(token); });
       }
     });
     return;
@@ -721,7 +722,9 @@ function play(i, dir) {
   audio.play().catch(function (e) {
     if (token !== playToken) return;
     if (e && e.name === "NotAllowedError") paintPlayer("paused");
-    else fail(token);
+    /* AbortError just means a pause() or new src cut this play() short, which
+       says nothing about whether the stream works */
+    else if (!e || e.name !== "AbortError") fail(token);
   });
 }
 
@@ -760,7 +763,16 @@ function fail(token) {
   });
 }
 
-audio.addEventListener("playing", function () { skipRun = 0; paintPlayer("playing"); });
+audio.addEventListener("playing", function () {
+  skipRun = 0;
+  paintPlayer("playing");
+  /* a station that plays is not dead, whatever an earlier attempt said */
+  if (current >= 0 && dead[key(current)]) {
+    delete dead[key(current)];
+    LS.set("dead", Object.keys(dead));
+    refreshRows();
+  }
+});
 audio.addEventListener("pause", function () {
   /* the pause() we issue while switching stations queues its own event; it must
      not overwrite the "connecting" state of the station we just moved to */
@@ -829,7 +841,7 @@ function toggleP() {
   if (current < 0) { randomPlay(); return; }
   if (audio.paused) {
     if (!audio.src && !hls) { play(current); return; }
-    audio.play().catch(function () { fail(); });
+    audio.play().catch(function (e) { if (!e || e.name !== "AbortError") fail(); });
   } else audio.pause();
 }
 
@@ -995,6 +1007,9 @@ elRows.addEventListener("click", function (e) {
   if (e.target.id === "reset") { resetAll(); return; }
   var r = e.target.closest(".row"); if (!r) return;
   var i = +r.dataset.i;
+  /* a second click (or a double-click) while still connecting would pause the
+     stream before it starts, so leave a connecting station alone */
+  if (i === current && curMode === "connecting") return;
   if (i === current && !audio.paused) audio.pause();
   else play(i);
 });
